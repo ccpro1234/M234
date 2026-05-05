@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SA — Baccarat META AI V2 (Enhanced Precision)</title>
+
+<style>
+:root {
+    --bg: #0b0b0d;
+    --panel: #151719;
+    --gold: #ffd24d;
+    --p: #33b5ff;
+    --b: #ff6b6b;
+    --t: #00ff88;
+    --ok: #00ff88;
+    --bad: #ff0033;
+    --text: #e6eef6;
+    --muted: #9aa7b2;
+    --accent: #00ffcc;
+}
+
+* { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+/* Header */
+.top {
+    background: linear-gradient(180deg, #1a1a1a 0%, #000 100%);
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid #333;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+.title { color: var(--gold); font-size: 22px; font-weight: 800; letter-spacing: 1px; }
+.info { color: var(--text); font-size: 14px; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 4px; }
+.zone { font-weight: bold; color: var(--gold); border: 1px solid var(--gold); }
+.spacer { flex: 1; }
+
+/* Main Layout */
+.main {
+    display: grid;
+    grid-template-columns: 1fr 450px;
+    gap: 15px;
+    padding: 15px;
+}
+
+/* Controls */
+.controls {
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    background: var(--panel);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    justify-content: center;
+}
+button {
+    border: none;
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: transform 0.1s, filter 0.2s;
+    text-transform: uppercase;
+}
+button:active { transform: scale(0.95); }
+.player { background: var(--p); color: #000; box-shadow: 0 0 15px rgba(51, 181, 255, 0.4); }
+.banker { background: var(--b); color: #000; box-shadow: 0 0 15px rgba(255, 107, 107, 0.4); }
+.tie { background: var(--t); color: #000; }
+.dark { background: #2a2a2a; color: #fff; border: 1px solid #444; }
+
+/* Panels */
+.panel { background: var(--panel); padding: 15px; border-radius: 10px; border: 1px solid #222; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+
+/* Lanes */
+.lanes-container { display: flex; flex-direction: column; gap: 8px; }
+.lane {
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
+    gap: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 4px;
+    align-items: center;
+}
+.lane strong { font-weight: bold; color: var(--muted); }
+.lane.gold { border-left: 4px solid var(--gold); background: rgba(255, 210, 77, 0.05); }
+.lane.gold strong { color: var(--gold); }
+.lane.good { border-left: 4px solid var(--ok); }
+.lane.bad { border-left: 4px solid var(--bad); opacity: 0.6; }
+
+/* AI Decision Box */
+.ai-decision-card {
+    background: linear-gradient(145deg, #1a1c1e 0%, #0a0a0a 100%);
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.ai-decision-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(transparent, transparent, transparent, var(--gold));
+    animation: rotate 4s linear infinite;
+    opacity: 0.1;
+    z-index: 0;
+}
+@keyframes rotate { 100% { transform: rotate(360deg); } }
+
+.meta-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 18px;
+    color: var(--gold);
+    font-weight: 800;
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 1;
+}
+.meta-side {
+    font-size: 3.5em;
+    font-weight: 900;
+    margin: 10px 0;
+    text-shadow: 0 0 20px currentColor;
+    position: relative;
+    z-index: 1;
+}
+.meta-confidence-bar {
+    width: 100%;
+    height: 8px;
+    background: #222;
+    border-radius: 4px;
+    margin: 15px 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+.confidence-fill {
+    height: 100%;
+    background: var(--gold);
+    width: 0%;
+    transition: width 0.5s ease-out;
+}
+
+/* Roadmap */
+canvas { background: #050607; width: 100%; height: 240px; border-radius: 4px; border: 1px solid #222; }
+
+/* Money Management */
+.money-table {
+    margin-top: 15px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.money-table th { text-align: left; color: var(--muted); padding: 8px; border-bottom: 1px solid #333; }
+.money-table td { padding: 8px; border-bottom: 1px solid #222; }
+.current-step { background: rgba(0, 255, 204, 0.1); color: var(--accent); font-weight: bold; }
+
+/* Animations */
+.blink { animation: blink 1s infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* Login */
+.login-box { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.login { background: #111; border: 1px solid #333; padding: 30px; width: 320px; text-align: center; border-radius: 12px; }
+.login h2 { margin: 0 0 20px; color: var(--gold); font-size: 24px; }
+.login input { width: 100%; margin: 10px 0; padding: 12px; background: #000; color: #fff; border: 1px solid #333; border-radius: 6px; }
+.login button { width: 100%; margin-top: 15px; background: var(--gold); color: #000; }
+
+.footer { text-align: center; font-size: 12px; color: var(--muted); padding: 20px; }
+
+/* LED Text */
+.led-bar { width: 100%; overflow: hidden; background: #000; border-top: 1px solid #222; padding: 8px 0; }
+.led-text { white-space: nowrap; display: inline-block; animation: ledRun 15s linear infinite; color: var(--gold); font-weight: bold; }
+@keyframes ledRun { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+
+/* Badge Grid Layout - Integrated into Prediction Card */
+.badge-container { 
+    display: grid; 
+    grid-template-columns: repeat(12, 1fr); 
+    gap: 4px; 
+    margin-top: 15px; 
+    padding: 8px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 6px;
+    position: relative;
+    z-index: 1;
+}
+.badge { 
+    width: 100%; 
+    aspect-ratio: 1/1; 
+    border-radius: 3px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 12px; 
+    font-weight: bold; 
+}
+.badge.win { background: var(--ok); color: #000; }
+.badge.lose { background: var(--bad); color: #fff; }
+.badge.empty { background: rgba(255,255,255,0.05); border: 1px dashed #333; }
+</style>
+</head>
+
+<body>
+<!-- LOGIN -->
+<div class="login-box" id="loginBox">
+    <div class="login">
+        <h2>META AI V2</h2>
+
+        <input id="user" placeholder="Username">
+
+        <input id="pass" type="password" placeholder="Password">
+
+        <!-- 👁️ แสดงรหัสผ่าน -->
+        <div style="text-align:left; margin-top:5px;">
+            <input type="checkbox" id="showPass" onclick="togglePass()">
+            <label for="showPass" style="font-size:13px;">แสดงรหัสผ่าน</label>
+        </div>
+
+        <button onclick="login()">เข้าสู่ระบบ</button>
+
+        <!-- 🔥 เปลี่ยน id เป็น loginErr -->
+        <div id="loginErr" style="color:var(--bad); margin-top:10px;"></div>
+    </div>
+</div>
+
+
+<div id="app" style="display:none">
+
+
+    <div class="top">
+        <div class="title">BACCARAT META AI V2</div>
+        <div class="info zone" id="zone">ZONE: NORMAL</div>
+        <div class="spacer"></div>
+        <div class="info" id="stats-summary">P: 0 | B: 0 | T: 0 | Total: 0</div>
+    </div>
+
+    <div class="controls">
+        <button class="player" onclick="add('P')">PLAYER</button>
+        <button class="banker" onclick="add('B')">BANKER</button>
+        <button class="tie" onclick="add('T')">TIE</button>
+        <button class="dark" onclick="undo()">UNDO</button>
+        <button class="dark" onclick="clearAll()">CLEAR</button>
+    </div>
+
+    <div class="main">
+        <div class="panel">
+            <h3 style="margin-top:0; color:var(--gold);">STRATEGY LANES</h3>
+            <div class="lanes-container" id="lanes"></div>
+        </div>
+
+        <div class="panel">
+            <div class="ai-decision-card">
+                <div class="meta-header">
+                    <span class="blink">●</span> META AI PREDICTION
+                </div>
+                <div id="ai-side" class="meta-side">WAIT</div>
+                <div id="ai-reason" style="font-size:14px; color:var(--muted); margin-bottom:10px;">กรุณาใส่ข้อมูล 3-5 ตาแรก</div>
+                <div class="meta-confidence-bar">
+                    <div id="confidence-fill" class="confidence-fill"></div>
+                </div>
+                <div id="ai-conf-text" style="font-size:16px; font-weight:bold; color:var(--gold);">Confidence: 0%</div>
+                
+                <!-- History Badges moved here -->
+                <div id="history-badges" class="badge-container"></div>
+            </div>
+
+            <div style="margin-top:20px;">
+    <div id="roadScroll" style="overflow-x:auto; width:100%;">
+        <canvas id="road" height="240"></canvas>
+    </div>
+</div>
+
+            <div class="panel" style="margin-top:15px; background:rgba(0,0,0,0.3);">
+                <h4 style="margin:0 0 10px 0; color:var(--accent);">MONEY MANAGEMENT (เดินเงิน 5 ไม้)</h4>
+                <table class="money-table">
+                    <thead>
+                        <tr><th>ไม้</th><th>จำนวนหน่วย</th><th>สถานะ</th></tr>
+                    </thead>
+                    <tbody id="money-body">
+                        <tr id="m1"><td>1</td><td>1</td><td id="s1">-</td></tr>
+                        <tr id="m2"><td>2</td><td>2</td><td id="s2">-</td></tr>
+                        <tr id="m3"><td>3</td><td>4</td><td id="s3">-</td></tr>
+                        <tr id="m4"><td>4</td><td>8</td><td id="s4">-</td></tr>
+                        <tr id="m5"><td>5</td><td>16</td><td id="s5">-</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="led-bar">
+        <div class="led-text">
+            อ.Maxma BACCARAT META AI V2 | ระบบวิเคราะห์ด้วย AI แม่นยำสูง |
+        </div>
+    </div>
+
+    <div class="footer">
+        อ.Maxma | เวอร์ชัน 2.0.3 (Final) | หมดอายุ: 8 พฤษภาคม 2569
+    </div>
+</div>
+
+<script>
+const EXPIRE_DATE = new Date('2026-05-08T23:59:59');
+const ROWS = 6;
+const history = [];
+const metaResults = []; 
+let currentStep = 1; 
+
+const F = [
+    h => h.at(-1), 
+    h => h.at(-1) === 'P' ? 'B' : 'P', 
+    h => { 
+        if (h.length < 2) return null;
+        return h.at(-1) === h.at(-2) ? h.at(-1) : (h.at(-1) === 'P' ? 'B' : 'P');
+    },
+    h => h.filter(x => x === 'P').length >= h.filter(x => x === 'B').length ? 'P' : 'B', 
+    h => h.length % 2 === 0 ? 'P' : 'B', 
+    h => h.length < 3 ? null : h.at(-3), 
+    h => { 
+        if (h.length < 3) return null;
+        if (h.at(-1) === h.at(-2)) return h.at(-1) === 'P' ? 'B' : 'P';
+        return h.at(-1);
+    },
+    h => h.length < 4 ? null : (h.slice(-4).filter(x => x === 'P').length >= 2 ? 'P' : 'B'),
+    h => h.length < 5 ? null : (h.at(-1) === h.at(-3) ? h.at(-1) : h.at(-2)),
+    h => { 
+        const s = h.slice(-3).join('');
+        if (s === 'PPB') return 'P';
+        if (s === 'BBP') return 'B';
+        return h.at(-1);
+    },
+    h => h.length < 2 ? null : (h.at(-1) === 'P' ? 'B' : 'P'), 
+    h => h.length < 4 ? null : h.at(-4),
+    h => { 
+        if (h.length < 2) return null;
+        return h.length % 4 < 2 ? 'P' : 'B';
+    },
+    h => h.length < 6 ? null : (h.slice(-6).filter(x => x === 'P').length > 3 ? 'B' : 'P'),
+    h => (Math.random() > 0.5 ? 'P' : 'B') 
+];
+
+const lanes = F.map(() => ({ items: [], pred: null }));
+
+
+function togglePass(){
+  const passInput = document.getElementById("pass");
+  passInput.type = passInput.type === "password" ? "text" : "password";
+}
+
+
+async function login(){
+
+  const userInput = document.getElementById("user");
+  const passInput = document.getElementById("pass");
+
+  const loginBoxEl = document.getElementById("loginBox");
+  const appEl = document.getElementById("app");
+  const loginErrEl = document.getElementById("loginErr");
+
+  loginErrEl.textContent="กำลังตรวจสอบ...";
+
+  try{
+
+    const res = await fetch(
+      "https://morning-block-55bb.havanalanna.workers.dev/?user="
+      + encodeURIComponent(userInput.value)
+      + "&pass=" + encodeURIComponent(passInput.value)
+    );
+
+    const data = await res.json();
+
+    if(data.status==="ok"){
+
+      loginBoxEl.style.display="none";
+      appEl.style.display="block";
+      render(); // 🔥 ของคุณใช้ render
+
+      const user = userInput.value;
+      const pass = passInput.value;
+
+      // 🔒 ตรวจ License ทุก 30 วิ
+      setInterval(async ()=>{
+
+        try{
+
+          const r = await fetch(
+            "https://morning-block-55bb.havanalanna.workers.dev/?user="
+            + encodeURIComponent(user)
+            + "&pass=" + encodeURIComponent(pass)
+          );
+
+          const j = await r.json();
+
+          if(j.status!=="ok"){
+            alert("⛔ License ถูกปิดใช้งาน");
+            location.reload();
+          }
+
+        }catch(e){
+          console.log("License check error");
+        }
+
+      },30000);
+
+    }else{
+      loginErrEl.textContent="User หรือ Password ไม่ถูกต้อง";
+    }
+
+  }catch(e){
+    loginErrEl.textContent="ไม่สามารถเชื่อมต่อ License Server";
+  }
+}
+
+
+
+function add(v) {
+    if (v === 'T') { 
+        history.push('T');
+        render();
+        return;
+    }
+    const lastAI = calculateMetaAI();
+    if (lastAI && lastAI.side) {
+        const isWin = lastAI.side === v;
+        metaResults.push(isWin ? '/' : 'X');
+        if (isWin) currentStep = 1; else currentStep = currentStep >= 5 ? 1 : currentStep + 1;
+    }
+    lanes.forEach((l, i) => {
+        if (l.pred) {
+            l.items.push(l.pred === v ? '/' : 'X');
+        }
+    });
+    history.push(v);
+    lanes.forEach((l, i) => {
+        l.pred = F[i](history.filter(x => x !== 'T'));
+    });
+    render();
+}
+
+function undo() {
+    if (history.length === 0) return;
+    history.pop();
+    clearAllData(false);
+    const tempHistory = [...history];
+    history.length = 0;
+    tempHistory.forEach(v => add(v));
+}
+
+function clearAll() {
+    if (confirm("ต้องการล้างข้อมูลทั้งหมดใช่หรือไม่?")) {
+        clearAllData(true);
+        render();
+    }
+}
+
+function clearAllData(full) {
+    if (full) history.length = 0;
+    metaResults.length = 0;
+    currentStep = 1;
+    lanes.forEach(l => { l.items = []; l.pred = null; });
+}
+
+function calculateMetaAI() {
+    if (history.filter(x => x !== 'T').length < 3) return null;
+    let scoreP = 0;
+    let scoreB = 0;
+    lanes.forEach((l, i) => {
+        if (!l.pred) return;
+        const total = l.items.length;
+        const wins = l.items.filter(x => x === '/').length;
+        const winRate = total > 0 ? wins / total : 0.5;
+        let streak = 0;
+        for (let j = l.items.length - 1; j >= 0; j--) {
+            if (l.items[j] === '/') streak++; else break;
+        }
+        const weight = winRate + (streak * 0.1);
+        if (l.pred === 'P') scoreP += weight;
+        if (l.pred === 'B') scoreB += weight;
+    });
+    const totalScore = scoreP + scoreB;
+    if (totalScore === 0) return null;
+    const side = scoreP > scoreB ? 'P' : 'B';
+    const conf = (Math.abs(scoreP - scoreB) / totalScore) * 100;
+    return { side, conf };
+}
+
+function render() {
+    const pCount = history.filter(x => x === 'P').length;
+    const bCount = history.filter(x => x === 'B').length;
+    const tCount = history.filter(x => x === 'T').length;
+    document.getElementById('stats-summary').textContent = `P: ${pCount} | B: ${bCount} | T: ${tCount} | Total: ${history.length}`;
+
+    let lanesHtml = '';
+    lanes.forEach((l, i) => {
+        const wins = l.items.filter(x => x === '/').length;
+        const total = l.items.length || 1;
+        const pct = (wins / total) * 100;
+        let cls = '';
+        if (pct >= 70) cls = 'gold';
+        else if (pct >= 55) cls = 'good';
+        else if (pct < 40) cls = 'bad';
+        lanesHtml += `
+            <div class="lane ${cls}">
+                <strong>LANE ${i + 1}</strong>
+                <span style="color:var(--muted)">[${l.pred || '-'}] ${l.items.slice(-10).join(' ')}</span>
+                <strong style="text-align:right">${pct.toFixed(0)}%</strong>
+            </div>
+        `;
+    });
+    document.getElementById('lanes').innerHTML = lanesHtml;
+
+    const ai = calculateMetaAI();
+    const sideEl = document.getElementById('ai-side');
+    const reasonEl = document.getElementById('ai-reason');
+    const confFill = document.getElementById('confidence-fill');
+    const confText = document.getElementById('ai-conf-text');
+
+    if (ai) {
+        sideEl.textContent = ai.side === 'P' ? 'PLAYER' : 'BANKER';
+        sideEl.style.color = ai.side === 'P' ? 'var(--p)' : 'var(--b)';
+        reasonEl.textContent = ai.conf > 70 ? "มั่นใจสูง แนะนำให้ตาม" : "ความมั่นใจปานกลาง โปรดระวัง";
+        confFill.style.width = ai.conf + '%';
+        confText.textContent = `Ai มีความมั่นใจ: ${ai.conf.toFixed(1)}%`;
+    } else {
+        sideEl.textContent = "WAIT";
+        sideEl.style.color = "var(--muted)";
+        reasonEl.textContent = "กำลังรวบรวมข้อมูลสถิติ...";
+        confFill.style.width = '0%';
+        confText.textContent = "Ai มีความมั่นใจ: 0%";
+    }
+
+    for (let i = 1; i <= 5; i++) {
+        const row = document.getElementById('m' + i);
+        const status = document.getElementById('s' + i);
+        row.className = (i === currentStep) ? 'current-step' : '';
+        status.textContent = (i === currentStep) ? '★ กำลังเล่น' : (i < currentStep ? 'X แพ้' : '-');
+    }
+
+    // Render History Badges inside the card
+    let badgesHtml = metaResults.map(r => `
+        <div class="badge ${r === '/' ? 'win' : 'lose'}">${r === '/' ? '✓' : '✕'}</div>
+    `).join('');
+    const remainder = metaResults.length % 12;
+    if (remainder !== 0) {
+        for (let i = 0; i < (12 - remainder); i++) {
+            badgesHtml += `<div class="badge empty"></div>`;
+        }
+    }
+    document.getElementById('history-badges').innerHTML = badgesHtml;
+
+    const zoneEl = document.getElementById('zone');
+    if (history.slice(-4).every((v, i, a) => v !== 'T' && v === a[0]) && history.length >= 4) {
+        zoneEl.textContent = "ZONE: DRAGON (อันตราย)";
+        zoneEl.style.color = "var(--bad)";
+        zoneEl.style.borderColor = "var(--bad)";
+    } else {
+        zoneEl.textContent = "ZONE: NORMAL";
+        zoneEl.style.color = "var(--gold)";
+        zoneEl.style.borderColor = "var(--gold)";
+    }
+    drawRoad();
+}
+
+
+function drawRoad() {
+    const canvas = document.getElementById('road');
+    const ctx = canvas.getContext('2d');
+    const scroll = document.getElementById('roadScroll');
+
+    const size = 18;
+    const gap = 4;
+
+    let x = 0, y = 0;
+    let lastV = null;
+
+    // 🔥 เดินรอบแรกเพื่อหาความกว้างจริง
+    history.forEach(v => {
+        if (v === 'T') return;
+
+        if (v !== lastV && lastV !== null) { x++; y = 0; } 
+        else if (lastV !== null) { y++; }
+
+        if (y >= ROWS) { y = 0; x++; }
+
+        lastV = v;
+    });
+
+    // 🔥 ใช้ x จริง (สำคัญมาก)
+    const totalCols = x + 2;
+
+    canvas.width = Math.max(totalCols * (size + gap) + 20, scroll.clientWidth);
+    canvas.height = 240;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 🔥 วาดจริง (reset x,y ใหม่)
+    x = 0;
+    y = 0;
+    lastV = null;
+
+    history.forEach(v => {
+        if (v === 'T') return;
+
+        if (v !== lastV && lastV !== null) { x++; y = 0; } 
+        else if (lastV !== null) { y++; }
+
+        if (y >= ROWS) { y = 0; x++; }
+
+        ctx.beginPath();
+        ctx.arc(
+            x * (size + gap) + size/2 + 10,
+            y * (size + gap) + size/2 + 10,
+            size/2,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.strokeStyle = v === 'P' ? '#33b5ff' : '#ff6b6b';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        lastV = v;
+    });
+
+    // 👉 scroll ไปสุดจริง
+    requestAnimationFrame(() => {
+        scroll.scrollLeft = scroll.scrollWidth;
+    });
+}
+
+if (new Date() > EXPIRE_DATE) {
+    document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:100px;'>โปรแกรมหมดอายุแล้ว</h1>";
+}
+</script>
+</body>
+</html>
